@@ -1,13 +1,11 @@
 import asyncio
 from datetime import timedelta
 from typing import List
-
 from scapy.plist import PacketList
 from starlette import status
 import uvicorn as uvicorn
 from fastapi import FastAPI, File, UploadFile, Form, Request, Response, Depends, HTTPException, encoders
 from fastapi.security import OAuth2PasswordRequestForm
-
 from authentication import get_password_hash, authenticate_user, create_access_token, Token
 from client import add_client
 from device import add_devices, add_connections, Device, get_devices_by_network

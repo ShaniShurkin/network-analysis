@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from typing import Union, Optional, Dict
-
 from fastapi import HTTPException, Depends
 from fastapi.security.utils import get_authorization_scheme_param
 from jose import jwt, JWTError
@@ -10,7 +9,6 @@ from pydantic import BaseModel
 from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
 from starlette import status
 from starlette.requests import Request
-
 from db_services import get_one_by_condition
 from technician import get_technician_by_condition, DBTechnician
 
