@@ -2,7 +2,8 @@ from datetime import datetime
 from typing import Optional, List
 
 from pydantic import BaseModel
-from db_services import get_all, add_row, get_one_by_condition, delete_one_by_condition, add_rows, get_many_by_condition
+from db_services import get_all, add_row, get_one_by_condition, delete_one_by_condition, add_rows, \
+    get_many_by_condition, join_tables, JoinStructure
 
 TABLE_NAME = "devices"
 
@@ -54,3 +55,15 @@ def delete_device_by_condition(**kwargs):
     if type(device) is dict:
         return Device(**device)
     return device
+
+
+def get_connected_devices(network_id):
+    from_table = ("devices_connections", "dc")
+    select = (("d1.mac_address", "src_mac_address"),
+              ("d2.mac_address", "dst_mac_address"))
+    join = (("devices", "d1"),
+            ("devices", "d2"))
+    on = ((("dc.src_device_id", "d1.id"), ("d1.network_id", network_id)),
+          (("dc.dst_device_id", "d2.id"), ("d2.network_id", network_id)))
+    js = JoinStructure(from_table=from_table, select=select, join=join, on=on)
+    return join_tables(js)

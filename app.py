@@ -1,5 +1,7 @@
 import asyncio
+from collections import defaultdict
 from datetime import timedelta
+from functools import reduce
 from typing import List
 from scapy.plist import PacketList
 from starlette import status
@@ -8,7 +10,7 @@ from fastapi import FastAPI, File, UploadFile, Form, Request, Response, Depends,
 from fastapi.security import OAuth2PasswordRequestForm
 from authentication import get_password_hash, authenticate_user, create_access_token, Token
 from client import add_client
-from device import add_devices, add_connections, Device, get_devices_by_network
+from device import add_devices, add_connections, Device, get_devices_by_network, get_connected_devices
 from middlewares import auth_middleware, client_auth_middleware
 from network import add_network
 from pcap_analyzer import read_pcap_file, create_devices_list, find_vendor, create_connections_list
@@ -26,6 +28,9 @@ async def apply_middleware(request: Request, call_next):
     client_id = request.path_params.get("client_id")
     if client_id:
         return await client_auth_middleware(request, call_next)
+    network_id = request.path_params.get("network_id")
+    if network_id:
+        pass
     response = await call_next(request)
     return response
 
@@ -100,8 +105,8 @@ async def add_client_to_current_technician(request: Request, id: int):
 
 
 # todo: make it async and solve problem with vendor( when async)
-@app.post("/technician/network")
-def analyze_network(file: UploadFile = File(...), client_id: int = Form(...)):
+@app.post("/technician/network/{client_id}")
+def analyze_network(client_id: int, file: UploadFile = File(...)):
     network_id: int = add_network(client_id)
     packets_lst: PacketList = read_pcap_file(file.file)
     dvcs_lst: List[Device] = create_devices_list(packets_lst, network_id)
@@ -110,6 +115,22 @@ def analyze_network(file: UploadFile = File(...), client_id: int = Form(...)):
     connections_list: [List[dict]] = create_connections_list(packets_lst, dvcs_with_id_lst)
     add_connections(connections_list)
     return {"network_id": network_id}
+
+
+# todo: change name
+@app.get("/technician/connected-devices/{network_id}")
+def get_conn_dvc(network_id: int):
+    conn_dvcs_lst: dict = get_connected_devices(network_id)
+    conn_dvcs_table = reduce(lambda dct, conn_dvcs:
+                             (dct[conn_dvcs["src_mac_address"]].append(conn_dvcs["dst_mac_address"]), dct)[-1],
+                             conn_dvcs_lst,
+                             defaultdict(list))
+    return conn_dvcs_table
+
+
+@app.get("/technician/devices/{network_id}")
+def get_network_devices(network_id: int):
+    return  get_devices_by_network(network_id)
 
 
 if __name__ == '__main__':

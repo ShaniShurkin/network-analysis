@@ -107,8 +107,8 @@ class JoinStructure(BaseModel):
 #              "join": (("devices", "d1"),
 #                       ("devices", "d2")),
 #              "on": (
-#                  (("dc.src_device_id", "d1.id"), ("network_id", 26)),
-#                  (("dc.dst_device_id", "d2.id"),)
+#                  (("dc.src_device_id", "d1.id"), ("d1.network_id", 26)),
+#                  (("dc.dst_device_id", "d2.id"), ("d2.network_id", 26))
 #              )
 #              }
 # js = JoinStructure(**join_vars)
