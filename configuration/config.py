@@ -9,5 +9,5 @@ config.set("database", "user", "root")
 config.set("database", "password", "")
 config.set("database", "database", "network_analysis")
 
-with open("config.ini", 'w') as conf:
+with open("../db_access/db_config.ini", 'w') as conf:
     config.write(conf)

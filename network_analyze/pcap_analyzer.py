@@ -1,14 +1,10 @@
-import asyncio
 from datetime import datetime, timezone
 from typing import List
 
-from scapy.all import scapy
-from scapy.layers.inet import IP
 from mac_vendor_lookup import MacLookup
-from scapy.layers.l2 import Ether
-from scapy.utils import rdpcap
+from scapy.all import *
 
-from device import Device
+from entity_services.device import Device
 
 
 def read_pcap_file(file):
@@ -23,6 +19,7 @@ def extract_packet_addrs(pac):
     #  dst_ip_addr = pac[IP].dst
     # return set of 2 tuples (src & dst) that each tuple includes:
     # mac address, ip address (if exists), date of capturing
+
     return {(pac.src, src_ip_addr), (pac.dst, dst_ip_addr)}
 
 
@@ -38,7 +35,9 @@ def find_vendor(mac_addr):
 def create_devices_list(pct_lst, network_id):
     dev_set = set()
     for pac in pct_lst:
+        # print([layer for layer in pac.layers()])
         dev_set |= extract_packet_addrs(pac)
+
     dev_lst = list()
     timestamp = int(pct_lst[0].time)
     date = datetime.fromtimestamp(timestamp, tz=timezone.utc).replace(hour=0, minute=0, second=0)
@@ -53,6 +52,7 @@ def create_devices_list(pct_lst, network_id):
     return dev_lst
 
 
+# todo: keep protocol, filter connections
 def create_connections_list(packets_lst, devices_lst: List[Device]):
     connections = set()
     # finds ids of source device and destination device
@@ -63,7 +63,7 @@ def create_connections_list(packets_lst, devices_lst: List[Device]):
                 src_id = dvc.id
             elif dvc.mac_address == pac.dst:
                 dst_id = dvc.id
+
         connections.add((src_id, dst_id))
     connections_lst = [{"src_device_id": conn[0], "dst_device_id": conn[1]} for conn in connections]
     return connections_lst
-

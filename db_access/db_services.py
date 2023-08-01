@@ -1,9 +1,9 @@
-from typing import Dict, Tuple, Union
+from typing import Tuple, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from db_connection import connect
-from exceptions_handling import handle_db_exceptions
+from db_access.db_connection import connect
+from exceptions_handling import handle_db_exceptions, EmptyRowError
 import atexit
 
 connection = connect()
@@ -50,7 +50,7 @@ def get_one_by_condition(table_name, **kwargs):
         cursor.execute(select_query)
         row = cursor.fetchone()
         if not row:
-            raise Exception(f"Error: no such row in {table_name}")
+            raise EmptyRowError(f"Error: no row in {table_name} with such values: {kwargs}")
         column_names = [column[0] for column in cursor.description]
         row_dict = dict(zip(column_names, row))
         return row_dict
@@ -75,21 +75,24 @@ def delete_one_by_condition(table_name, **kwargs):
 
 
 @handle_db_exceptions
+def create_dicts_list_from_rows(cursor):
+    rows = cursor.fetchall()
+    if len(rows) == 0:
+        raise EmptyRowError
+    column_names = [column[0] for column in cursor.description]
+    rows_lst = [dict(zip(column_names, row)) for row in rows]
+    return rows_lst
+
+
+@handle_db_exceptions
 def create_query_with_conditions(query_start, table_name, **kwargs):
     query = f"{query_start} FROM {table_name} WHERE"
     for key, value in kwargs.items():
-        if type(value) is str:
+        if type(value) is str and not value.isdigit():
             value = f"'{value}'"
         query += f" {key}={value} AND "
     query = query[:-5]
     return query
-
-
-@handle_db_exceptions
-def create_dicts_list_from_rows(cursor):
-    column_names = [column[0] for column in cursor.description]
-    rows_lst = [dict(zip(column_names, row)) for row in cursor.fetchall()]
-    return rows_lst
 
 
 class JoinStructure(BaseModel):

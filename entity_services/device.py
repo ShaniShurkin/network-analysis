@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional, List
 
 from pydantic import BaseModel
-from db_services import get_all, add_row, get_one_by_condition, delete_one_by_condition, add_rows, \
+from db_access.db_services import get_all, add_row, get_one_by_condition, delete_one_by_condition, add_rows, \
     get_many_by_condition, join_tables, JoinStructure
 
 TABLE_NAME = "devices"
@@ -36,11 +36,19 @@ def add_connections(connections_lst: List[dict]):
     return add_rows("devices_connections", connections_lst)
 
 
+# todo: merge this functions
 def get_device_by_condition(**kwargs):
     device = get_one_by_condition(TABLE_NAME, **kwargs)
     if type(device) is dict:
         return Device(**device)
     return device
+
+
+def get_devices_by_condition(**kwargs):
+    devices = get_many_by_condition(TABLE_NAME, **kwargs)
+    if type(devices) is list:
+        return [Device(**dict(device)) for device in devices]
+    return devices
 
 
 def get_devices_by_network(network_id):
@@ -61,8 +69,8 @@ def get_connected_devices(network_id):
     from_table = ("devices_connections", "dc")
     select = (("d1.mac_address", "src_mac_address"),
               ("d2.mac_address", "dst_mac_address"))
-    join = (("devices", "d1"),
-            ("devices", "d2"))
+    join = ((TABLE_NAME, "d1"),
+            (TABLE_NAME, "d2"))
     on = ((("dc.src_device_id", "d1.id"), ("d1.network_id", network_id)),
           (("dc.dst_device_id", "d2.id"), ("d2.network_id", network_id)))
     js = JoinStructure(from_table=from_table, select=select, join=join, on=on)

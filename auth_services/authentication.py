@@ -1,16 +1,15 @@
 from datetime import datetime, timedelta
 from typing import Union, Optional, Dict
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException
 from fastapi.security.utils import get_authorization_scheme_param
 from jose import jwt, JWTError
 from passlib.context import CryptContext
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer, OAuth2
+from fastapi.security import OAuth2PasswordBearer, OAuth2
 from pydantic import BaseModel
 from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
 from starlette import status
 from starlette.requests import Request
-from db_services import get_one_by_condition
-from technician import get_technician_by_condition, DBTechnician
+from entity_services.technician import get_technician_by_condition
 
 SECRET_KEY = r"PE/9wcV31ayos6hpy/RV0uf9qC8FzJPZKPKVb4h2TJ0="
 ALGORITHM = "HS256"
@@ -35,7 +34,7 @@ class OAuth2PasswordBearerWithCookie(OAuth2):
         flows = OAuthFlowsModel(password={"tokenUrl": tokenUrl, "scopes": scopes})
         super().__init__(flows=flows, scheme_name=scheme_name, auto_error=auto_error)
 
-    async def __call__(self, request: Request) -> Optional[str]:
+    def __call__(self, request: Request) -> Optional[str]:
         authorization: str = request.cookies.get("Authorization")  # changed to accept access token from httpOnly Cookie
 
         scheme, param = get_authorization_scheme_param(authorization)
