@@ -1,15 +1,11 @@
 from functools import wraps
-
+from fastapi import HTTPException
 from mysql.connector import ProgrammingError, IntegrityError
+from fastapi.responses import JSONResponse
 
 
 class EmptyRowError(Exception):
-    """Exception raised when there are no rows as required.
-
-    Attributes:
-        message -- explanation of the error
-    """
-
+    # Exception raised when there are no rows as required
     def __init__(self, message="Error: no rows as required"):
         self.message = message
         super().__init__(self.message)
@@ -21,10 +17,28 @@ def handle_app_exceptions(func):
         try:
             func_res = func(*args, **kwargs)
             return func_res
-        except Exception as e:
-            print(e)
-            return e
+        except HTTPException as he:
+            raise he
 
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    return inner_function
+
+
+def handle_middleware_exceptions(func):
+    @wraps(func)
+    def inner_function(*args, **kwargs):
+        try:
+            func_res = func(*args, **kwargs)
+            return func_res
+        except HTTPException as he:
+            res = JSONResponse(content=he)
+            return res
+
+        except Exception as e:
+            res = JSONResponse(status_code=500, content={'detail': str(e)})
+            return res
     return inner_function
 
 
@@ -37,7 +51,7 @@ def handle_db_exceptions(func):
         except EmptyRowError as ere:
             raise ere
         except TypeError as te:
-            msg = f"{te}\nyou are recomanded to check what you send"
+            msg = f"{te}\nYou are advised to check what you send"
             print(msg)
             raise TypeError(msg)
         except ProgrammingError as pe:

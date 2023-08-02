@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Response, Depends, encoders
+from fastapi import APIRouter, Response, Depends, encoders
 from fastapi.security import OAuth2PasswordRequestForm
 from auth_services.authentication import get_password_hash, authenticate_user, create_access_token
 from exceptions_handling import handle_app_exceptions
@@ -8,7 +8,6 @@ from entity_services.technician import add_tech, RegisterTechnician, DBTechnicia
 router = APIRouter(prefix="/api/login")
 
 
-# todo: get username and password via headers
 @router.post("/")
 @handle_app_exceptions
 def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends()):

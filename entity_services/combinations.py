@@ -8,7 +8,6 @@ def get_technician_clients(technician_id):
     return clients
 
 
-# todo: merge this functions
 def get_networks_by_technician(technician_id):
     from_table = ("clients_technicians", "ct")
     select = (("n.id", "network_id"),
@@ -33,7 +32,6 @@ def add_client_to_technician(client_id: int, technician_id: int):
     return add_row("clients_technicians", {"client_id": client_id, "technician_id": technician_id})
 
 
-# todo: change name
 def get_technician_with_network(network_id, technician_id):
     from_table = ("clients_technicians", "ct")
     select = (("n.id", "network_id"),

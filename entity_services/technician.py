@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel
-from db_access.db_services import get_all, add_row, get_one_by_condition, delete_one_by_condition, JoinStructure, join_tables
+from db_access.db_services import get_all, add_row, get_one_by_condition, delete_one_by_condition
 
 TABLE_NAME = "technicians"
 
@@ -40,5 +40,3 @@ def delete_technician_by_condition(**kwargs):
     if type(tech) is dict:
         return DBTechnician(**tech)
     return tech
-
-

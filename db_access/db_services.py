@@ -16,6 +16,13 @@ def get_all(table_name):
         cursor.execute(select_all_sql)
         rows_lst = create_dicts_list_from_rows(cursor)
         return rows_lst
+        # cursor.execute("""DELETE FROM networks
+        #  """)
+        # connection.commit()
+        # """ALTER TABLE device_communication
+        #         MODIFY protocols TEXT NOT NULL;
+        #         """
+        # INSERT INTO communications (protocols) VALUES ('["TCP", "UDP"]');
 
 
 @handle_db_exceptions
@@ -68,7 +75,7 @@ def get_many_by_condition(table_name, **kwargs):
 @handle_db_exceptions
 def delete_one_by_condition(table_name, **kwargs):
     with connection.cursor() as cursor:
-        delete_query = create_query_with_conditions("DELETE FROM", table_name, **kwargs)
+        delete_query = create_query_with_conditions("DELETE ", table_name, **kwargs)
         cursor.execute(delete_query)
         connection.commit()
         return cursor.lastrowid
