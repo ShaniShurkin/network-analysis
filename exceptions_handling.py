@@ -28,17 +28,17 @@ def handle_app_exceptions(func):
 
 def handle_middleware_exceptions(func):
     @wraps(func)
-    def inner_function(*args, **kwargs):
+    async def inner_function(*args, **kwargs):
         try:
-            func_res = func(*args, **kwargs)
+            func_res = await func(*args, **kwargs)
             return func_res
         except HTTPException as he:
-            res = JSONResponse(content=he)
-            return res
+            print(he)
+            return JSONResponse(status_code=he.status_code, content={'detail': he.detail})
 
         except Exception as e:
-            res = JSONResponse(status_code=500, content={'detail': str(e)})
-            return res
+            return JSONResponse(status_code=500, content={'detail': str(e)})
+
     return inner_function
 
 

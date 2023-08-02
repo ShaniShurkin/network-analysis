@@ -1,5 +1,7 @@
 import uvicorn as uvicorn
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+
 from exceptions_handling import handle_middleware_exceptions
 from auth_services.middlewares import auth_middleware
 from routes import login, technician, network
@@ -9,11 +11,11 @@ app = FastAPI()
 
 @app.middleware("http")
 @handle_middleware_exceptions
-def apply_auth_middleware(request: Request, call_next):
+async def apply_auth_middleware(request: Request, call_next):
     # Apply the authorization middleware only to specific endpoints
     if "login" not in request.url.path:
-        return auth_middleware(request, call_next)
-    response = call_next(request)
+        return await auth_middleware(request, call_next)
+    response = await call_next(request)
     return response
 
 

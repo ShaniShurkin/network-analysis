@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Tuple, Union, Optional
 
 from pydantic import BaseModel
 
@@ -104,7 +104,7 @@ def create_query_with_conditions(query_start, table_name, **kwargs):
 
 class JoinStructure(BaseModel):
     from_table: Tuple[str, str]
-    select: Tuple[Tuple[str, str], ...]
+    select: Tuple[Tuple[str, Optional[str]], ...]
     join: Tuple[Tuple[str, str], ...]
     on: Tuple[Tuple[Tuple[str, Union[str, int]], ...], ...]
 
@@ -123,7 +123,6 @@ class JoinStructure(BaseModel):
 #              }
 # js = JoinStructure(**join_vars)
 
-
 @handle_db_exceptions
 def join_tables(join_vars: JoinStructure):
     with connection.cursor() as cursor:
@@ -132,7 +131,13 @@ def join_tables(join_vars: JoinStructure):
         # FROM devices_connections dc
         # JOIN devices d1 ON dc.src_device_id = d1.id AND d1.network_id=26
         # JOIN devices d2 ON dc.dst_device_id = d2.id AND d2.network_id=26; """
-        selects = [f"{s1} AS {s2}" for s1, s2 in join_vars.select]
+        selects = []
+        for s1, s2 in join_vars.select:
+            if s2:
+                selects.append(f"{s1} AS {s2}")
+            else:
+                selects.append(f"{s1} ")
+        # selects = [f"{s1} AS {s2}" for s1, s2 in join_vars.select]
         joins = [f"JOIN {j1} {j2} ON" for j1, j2 in join_vars.join]
         ons = [" AND ".join([f"{on1} = {on2}" for on1, on2 in on]) for on in join_vars.on]
         join_query = f"""SELECT {', '.join(selects)} \nFROM {join_vars.from_table[0]} {join_vars.from_table[1]}\n"""

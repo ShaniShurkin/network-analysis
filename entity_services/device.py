@@ -67,6 +67,18 @@ def get_devices_by_network(network_id):
     return devices
 
 
+def get_devices_by_client(client_id):
+    from_table = ("devices", "d")
+    select = (("d.*", None),)
+    join = (("networks", "n"),)
+    on = ((("n.client_id", client_id), ("d.network_id", "n.id")),)
+    js = JoinStructure(from_table=from_table, select=select, join=join, on=on)
+    devices = join_tables(js)
+    if type(devices) is list:
+        return [Device(**dict(device)) for device in devices]
+    return devices
+
+
 def delete_device_by_condition(**kwargs):
     device = delete_one_by_condition(TABLE_NAME, **kwargs)
     if type(device) is dict:

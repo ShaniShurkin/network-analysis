@@ -3,7 +3,7 @@ from functools import reduce
 from fastapi import APIRouter, File, UploadFile, Request
 from starlette.responses import Response
 from entity_services.device import get_devices_by_network, get_connected_devices, \
-    get_devices_by_condition
+    get_devices_by_condition, get_devices_by_client
 from exceptions_handling import handle_app_exceptions
 from entity_services.combinations import get_networks_by_technician, get_networks_by_client
 from network_analyze.network_creation import create_network, create_network_visualization
@@ -52,6 +52,12 @@ def get_network_devices(request: Request, network_id: int):
     return get_devices_by_network(network_id)
 
 
+@router.get("/client/{client_id}/devices")
+@handle_app_exceptions
+def get_client_devices(client_id: int):
+    return get_devices_by_client(client_id)
+
+
 @router.get("/client/{client_id}")
 @handle_app_exceptions
 def get_client_networks(request: Request, client_id: int):
@@ -64,4 +70,3 @@ def get_client_networks(request: Request, client_id: int):
 def get_technician_networks(request: Request):
     networks = get_networks_by_technician(technician_id=request.state.user.id)
     return networks
-
