@@ -1,0 +1,5 @@
+TODO:
+1. write readme
+2. add extra (chatrooms)
+3. documentation
+4. test
